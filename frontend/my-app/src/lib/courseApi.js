@@ -1,3 +1,4 @@
+import { guardedFetch } from './privateScope';
 import { API_BASE } from '../config';
 import { getAuthHeaders } from './authApi';
 import { safeReadResponse, extractErrorMessage } from './responseUtils';
@@ -6,7 +7,7 @@ import { safeReadResponse, extractErrorMessage } from './responseUtils';
  * Join a course by access code (student).
  */
 export async function joinCourse({ accessCode, priorKnowledge }) {
-  const response = await fetch(`${API_BASE}/v1/courses/join`, {
+  const response = await guardedFetch(`${API_BASE}/v1/courses/join`, {
     method: 'POST',
     headers: getAuthHeaders(),
     credentials: 'include',
@@ -20,7 +21,7 @@ export async function joinCourse({ accessCode, priorKnowledge }) {
 }
 
 export async function listMyCourses() {
-  const response = await fetch(`${API_BASE}/v1/courses/mine`, {
+  const response = await guardedFetch(`${API_BASE}/v1/courses/mine`, {
     method: 'GET',
     headers: getAuthHeaders(),
     credentials: 'include',
@@ -33,7 +34,7 @@ export async function listMyCourses() {
 }
 
 export async function listPublishedTopics(courseId) {
-  const response = await fetch(`${API_BASE}/v1/courses/${courseId}/topics`, {
+  const response = await guardedFetch(`${API_BASE}/v1/courses/${courseId}/topics`, {
     method: 'GET',
     headers: getAuthHeaders(),
     credentials: 'include',
@@ -49,7 +50,7 @@ export async function listPublishedTopics(courseId) {
  * Start a published topic; returns { sessionId, phase, activeModuleId }.
  */
 export async function startCourseTopic(courseId, topicId) {
-  const response = await fetch(`${API_BASE}/v1/courses/${courseId}/topics/${topicId}/start`, {
+  const response = await guardedFetch(`${API_BASE}/v1/courses/${courseId}/topics/${topicId}/start`, {
     method: 'POST',
     headers: getAuthHeaders(),
     credentials: 'include',

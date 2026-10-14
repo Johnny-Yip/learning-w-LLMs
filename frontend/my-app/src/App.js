@@ -29,6 +29,7 @@ import InstructorInsightsPage from './Pages/instructor/InstructorInsightsPage';
 
 function App() {
   const initialize = useAuthStore((state) => state.initialize);
+  const privateAccount = useAuthStore(state => state.isAuthenticated ? (state.user?._id || state.user?.id || 'signed-out') : 'signed-out');
 
   // Initialize auth state on app mount
   useEffect(() => {
@@ -37,7 +38,7 @@ function App() {
 
   return (
     <Router>
-      <ToastContainer />
+      <ToastContainer key={privateAccount} />
       <Routes>
         <Route path="/" element={<RootRedirect />} />
         <Route path="/signin" element={<SignIn />} />
@@ -55,13 +56,13 @@ function App() {
           path="/instructor/onboarding"
           element={
             <ProtectedRoute requireOnboarding={false}>
-              <InstructorOnboarding />
+              <InstructorOnboarding key={privateAccount} />
             </ProtectedRoute>
           }
         />
 
         {/* Student app shell */}
-        <Route element={<AppShell />}>
+        <Route element={<AppShell key={privateAccount} />}>
           <Route
             path="/chat"
             element={
@@ -129,7 +130,7 @@ function App() {
         </Route>
 
         {/* Instructor dashboard shell */}
-        <Route element={<InstructorShell />}>
+        <Route element={<InstructorShell key={privateAccount} />}>
           <Route
             path="/instructor/dashboard"
             element={

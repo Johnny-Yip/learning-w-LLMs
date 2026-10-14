@@ -4,6 +4,7 @@ import QuizOverlay from '../components/quiz/QuizOverlay';
 import useSessionStore from '../state/sessionStore';
 import * as sessionApi from '../lib/sessionApi';
 import Loader from '../components/Loader';
+import { capturePrivateScope, assertPrivateScope, isPrivateScopeCurrent } from '../lib/privateScope';
 import MessageContent from '../components/chat/MessageContent';
 
 function ChatInterface() {
@@ -320,6 +321,7 @@ function ChatInterface() {
   // Initialize session if none exists
   useEffect(() => {
     let isMounted = true;
+    const scope = capturePrivateScope();
     
     const initializeSession = async () => {
       // Only create session if we don't have one and component is still mounted
@@ -337,12 +339,14 @@ function ChatInterface() {
         try {
           console.log('Resuming session from server to sync state...');
           const resumedSession = await resumeSessionFromServer(sessionId);
+          assertPrivateScope(scope);
           // Show confetti if session is completed
           if (resumedSession?.phase === 'completed') {
             setShowConfetti(true);
             setTimeout(() => setShowConfetti(false), 5000);
           }
         } catch (error) {
+          if (!isPrivateScopeCurrent(scope)) return;
           console.error('Failed to resume session:', error);
           // If resume fails, clear the session and create a new one
           if (isMounted) {
@@ -469,6 +473,7 @@ function ChatInterface() {
   
   // Handle Summarize button click
   const handleSummarize = async () => {
+    const scope = capturePrivateScope();
     if (!sessionId) {
       setToast({ type: 'error', message: 'Session not available' });
       return;
@@ -477,6 +482,7 @@ function ChatInterface() {
     try {
       setIsSummarizing(true);
       const response = await sessionApi.summarizeSession(sessionId);
+      assertPrivateScope(scope);
       console.log('Summarize response:', response);
       
       // Handle different response structures
@@ -574,6 +580,7 @@ function ChatInterface() {
     e.preventDefault();
     if (!inputValue.trim() || loading || isSubmittingRef.current) return;
 
+    const scope = capturePrivateScope();
     const message = inputValue.trim();
     setInputValue('');
     adjustTextareaHeight();
@@ -585,6 +592,7 @@ function ChatInterface() {
       if (!currentSessionId) {
         try {
           await createSession();
+          assertPrivateScope(scope);
           currentSessionId = useSessionStore.getState().sessionId;
           if (!currentSessionId) {
             throw new Error('Failed to create session. Please refresh the page and try again.');
@@ -603,6 +611,7 @@ function ChatInterface() {
       // Always use sendChatMessage - it handles shouldTriggerAssessment automatically
       // The session store will detect learning intent and trigger assessment if needed
       await sendChatMessage(message);
+      assertPrivateScope(scope);
       setIsUserScrolledUp(false);
       // Scroll to bottom and refocus textarea so user can type next message without clicking
       setTimeout(() => {
@@ -616,6 +625,7 @@ function ChatInterface() {
         input?.focus({ preventScroll: true });
       }, 150);
     } catch (err) {
+      if (!isPrivateScopeCurrent(scope)) return;
       console.error('Error sending message:', err);
       useSessionStore.setState({ error: err.message || 'Failed to send message' });
       setToast({ type: 'error', message: err.message || 'Failed to send message. Please try again.' });

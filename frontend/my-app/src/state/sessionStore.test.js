@@ -1,5 +1,11 @@
 import { renderHook, act } from '@testing-library/react';
 import useSessionStore from './sessionStore';
+import useAuthStore from './authStore';
+
+jest.mock('./authStore', () => ({
+  __esModule: true,
+  default: { getState: jest.fn() },
+}));
 
 // Mock the API modules
 jest.mock('../lib/sessionApi', () => ({
@@ -22,6 +28,10 @@ jest.mock('../lib/quizApi', () => ({
 
 describe('SessionStore', () => {
   beforeEach(() => {
+    useAuthStore.getState.mockReturnValue({
+      isAuthenticated: true,
+      user: { name: 'Test User', profile: { background: 'Student', goals: ['Learn'], strengths: ['Practice'], gaps: ['Basics'] } },
+    });
     const sessionApi = require('../lib/sessionApi');
     sessionApi.createSession.mockResolvedValue({
       success: true,

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import * as sessionApi from '../lib/sessionApi';
+import { capturePrivateScope, assertPrivateScope } from '../lib/privateScope';
 import useSessionStore from '../state/sessionStore';
 import Loader from '../components/Loader';
 import '../styles/ChatHistory.css';
@@ -155,9 +156,11 @@ function ChatHistory() {
   };
 
   const handleRenameSession = async (e, sessionId, newTitle) => {
+    const scope = capturePrivateScope();
     e.stopPropagation();
     try {
       const response = await sessionApi.updateSessionTitle(sessionId, newTitle);
+      assertPrivateScope(scope);
       // Update local session store if this is the current session
       if (currentSessionId === sessionId) {
         useSessionStore.setState({ 
@@ -212,12 +215,14 @@ function ChatHistory() {
   };
 
   const handleSessionClick = async (sessionId, sessionMode, sessionTopic) => {
+    const scope = capturePrivateScope();
     try {
       setIsResumingSession(true);
       setResumingSessionId(sessionId);
       
       // Resume the session
       const session = await resumeSessionFromServer(sessionId);
+      assertPrivateScope(scope);
       
       // If it's a revision session and has a topic, open quiz overlay
       const isRevision = sessionMode === 'reviewing' || sessionMode === 'revision';
@@ -227,6 +232,7 @@ function ChatHistory() {
           await startRevisionQuiz(sessionTopic);
           // Small delay to ensure state is set before navigation
           await new Promise(resolve => setTimeout(resolve, 100));
+          assertPrivateScope(scope);
           navigate('/chat', { replace: true });
         } catch (quizError) {
           console.error('Failed to start revision quiz:', quizError);

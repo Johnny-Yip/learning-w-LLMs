@@ -1,3 +1,4 @@
+import { guardedFetch } from './privateScope';
 import { API_BASE } from '../config';
 import { getAuthHeaders } from './authApi';
 import { safeReadResponse, extractErrorMessage } from './responseUtils';
@@ -8,7 +9,7 @@ import { safeReadResponse, extractErrorMessage } from './responseUtils';
 export async function getPerformanceData() {
   const url = `${API_BASE}/v1/performance`;
   
-  const response = await fetch(url, {
+  const response = await guardedFetch(url, {
     method: 'GET',
     headers: getAuthHeaders(),
     credentials: 'include',
@@ -30,7 +31,7 @@ export async function getPerformanceData() {
 export async function exportPerformanceData() {
   const url = `${API_BASE}/v1/performance/export`;
   
-  const response = await fetch(url, {
+  const response = await guardedFetch(url, {
     method: 'GET',
     headers: getAuthHeaders(),
     credentials: 'include',

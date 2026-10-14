@@ -6,6 +6,7 @@ import LockIcon from '../components/SignIn/LockIcon';
 import useAuthStore from '../state/authStore';
 import Loader from '../components/Loader';
 import * as authApi from '../lib/authApi';
+import { capturePrivateScope, assertPrivateScope } from '../lib/privateScope';
 
 function SignUp() {
   const navigate = useNavigate();
@@ -41,6 +42,7 @@ function SignUp() {
   }, [clearError]);
 
   const handleSubmit = async (e) => {
+    const scope = capturePrivateScope();
     e.preventDefault();
     setLocalError('');
 
@@ -93,6 +95,7 @@ function SignUp() {
     try {
       // Check username
       const usernameCheck = await authApi.checkUsername(username);
+      assertPrivateScope(scope);
       if (usernameCheck.exists) {
         setLocalError('This username is already taken. Please choose a different username or click "Generate a Username".');
         setIsCheckingUsername(false);

@@ -1,3 +1,4 @@
+import { guardedFetch } from './privateScope';
 import { API_BASE } from '../config';
 import { getAuthHeaders } from './authApi';
 import { safeReadResponse, extractErrorMessage } from './responseUtils';
@@ -13,7 +14,7 @@ async function parse(response) {
 export async function getInstructorChatHistory({ courseId = null } = {}) {
   const qs = courseId ? `?courseId=${encodeURIComponent(courseId)}` : '';
   return parse(
-    await fetch(`${API_BASE}/v1/instructor/chat${qs}`, {
+    await guardedFetch(`${API_BASE}/v1/instructor/chat${qs}`, {
       method: 'GET',
       headers: getAuthHeaders(),
       credentials: 'include',
@@ -28,7 +29,7 @@ export async function sendInstructorChatMessage({
   includeSynthetic = true,
 }) {
   return parse(
-    await fetch(`${API_BASE}/v1/instructor/chat`, {
+    await guardedFetch(`${API_BASE}/v1/instructor/chat`, {
       method: 'POST',
       headers: getAuthHeaders(),
       credentials: 'include',
@@ -40,7 +41,7 @@ export async function sendInstructorChatMessage({
 export async function clearInstructorChatHistory({ courseId = null } = {}) {
   const qs = courseId ? `?courseId=${encodeURIComponent(courseId)}` : '';
   return parse(
-    await fetch(`${API_BASE}/v1/instructor/chat${qs}`, {
+    await guardedFetch(`${API_BASE}/v1/instructor/chat${qs}`, {
       method: 'DELETE',
       headers: getAuthHeaders(),
       credentials: 'include',

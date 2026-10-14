@@ -1,3 +1,4 @@
+import { guardedFetch, capturePrivateScope, assertPrivateScope, isPrivateScopeCurrent } from './privateScope';
 /**
  * Centralized API interceptor for handling authentication errors
  * Automatically refreshes tokens on 401 errors and shows appropriate toasts
@@ -16,9 +17,10 @@ let refreshPromise = null;
  * @returns {Promise<Response>} - Fetch response
  */
 export async function interceptedFetch(url, options = {}) {
+  const scope = capturePrivateScope();
   const generation = getAuthGeneration();
   // Make initial request
-  let response = await fetch(url, options);
+  let response = await guardedFetch(url, options);
 
   // If we get a 401, try to refresh the token
   if (response.status === 401 && generation === getAuthGeneration()) {
@@ -35,6 +37,7 @@ export async function interceptedFetch(url, options = {}) {
       data = {};
     }
     
+    assertPrivateScope(scope);
     // Check if it's actually a token expiration issue
     const isTokenError = data.code === 'INVALID_TOKEN' || 
                         data.code === 'AUTH_REQUIRED' ||
@@ -67,8 +70,9 @@ export async function interceptedFetch(url, options = {}) {
             });
             
             // Clear auth state and redirect to login
+            const expiredScope = capturePrivateScope();
             setTimeout(() => {
-              window.location.href = '/signin';
+              if (isPrivateScopeCurrent(expiredScope)) window.location.href = '/signin';
             }, 2000);
             
             throw error;
@@ -83,13 +87,14 @@ export async function interceptedFetch(url, options = {}) {
       await refreshPromise;
       if (generation !== getAuthGeneration()) throw new Error('Authentication request cancelled');
       
+      assertPrivateScope(scope);
       // Retry original request with new token
       const newHeaders = {
         ...options.headers,
         ...getAuthHeaders()
       };
       
-      response = await fetch(url, {
+      response = await guardedFetch(url, {
         ...options,
         headers: newHeaders
       });
@@ -103,8 +108,9 @@ export async function interceptedFetch(url, options = {}) {
           duration: 5000
         });
         
+        const expiredScope = capturePrivateScope();
         setTimeout(() => {
-          window.location.href = '/signin';
+          if (isPrivateScopeCurrent(expiredScope)) window.location.href = '/signin';
         }, 2000);
       }
       // Don't show success toast - automatic refresh should be seamless

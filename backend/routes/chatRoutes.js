@@ -17,7 +17,7 @@ const { updateContextSummary } = require('../prompts/context_summarizer');
 const { updateProgress } = require('../services/progressService');
 const { recordMilestoneAttempt } = require('../services/milestoneAttemptService');
 const { callTeacherAPI, callTeacherAPIStream } = require('../services/teacherService');
-const { requireAuth, requireOwnership } = require('../middleware/auth');
+const { requireAuth } = require('../middleware/auth');
 const { useMultiAgent, useStreaming } = require('../agents/framework/featureFlag');
 const { runIntentAgent } = require('../agents/intentAgent');
 const { runStudyGraph } = require('../agents/graph/runGraph');
@@ -282,6 +282,15 @@ router.post('/v1/chat', requireAuth, async (req, res) => {
       });
     }
     
+    // Check ownership before reading course context, calling the AI, or changing the session.
+    if (!session.userId || session.userId.toString() !== req.userId) {
+      return res.status(403).json({
+        success: false,
+        error: 'Access denied. You do not have permission to access this resource.',
+        code: 'FORBIDDEN'
+      });
+    }
+
     console.log('Session loaded successfully', {
       sessionId,
       phase: session.phase,

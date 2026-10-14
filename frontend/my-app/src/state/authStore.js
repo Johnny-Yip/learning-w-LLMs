@@ -3,6 +3,7 @@ import { persist } from 'zustand/middleware';
 import * as authApi from '../lib/authApi';
 import * as profileApi from '../lib/profileApi';
 import { toastBus } from '../components/ui/toast';
+import { setPrivateOwner, capturePrivateScope, assertPrivateScope, isPrivateScopeCurrent } from '../lib/privateScope';
 
 const initial = {
   user: null,
@@ -238,11 +239,14 @@ const useAuthStore = create(
        * Update user profile
        */
       updateProfile: async (profileData) => {
+        const scope = capturePrivateScope();
         set({ isLoading: true, error: null });
         try {
           const { profile } = await profileApi.updateProfile(profileData);
+          assertPrivateScope(scope);
           // Refresh full user data to get updated stats and avatar
           const updatedUser = await authApi.getCurrentUser();
+          assertPrivateScope(scope);
           set({
             user: updatedUser,
             isLoading: false,
@@ -250,6 +254,7 @@ const useAuthStore = create(
           });
           return profile;
         } catch (error) {
+          if (!isPrivateScopeCurrent(scope)) throw error;
           set({
             isLoading: false,
             error: error.message || 'Failed to update profile',
@@ -262,10 +267,12 @@ const useAuthStore = create(
        * Update user preferences
        */
       updatePreferences: async (preferences) => {
+        const scope = capturePrivateScope();
         set({ isLoading: true, error: null });
         try {
           const { preferences: updatedPreferences } = await profileApi.updatePreferences(preferences);
           const currentUser = get().user;
+          assertPrivateScope(scope);
           set({
             user: {
               ...currentUser,
@@ -276,6 +283,7 @@ const useAuthStore = create(
           });
           return updatedPreferences;
         } catch (error) {
+          if (!isPrivateScopeCurrent(scope)) throw error;
           set({
             isLoading: false,
             error: error.message || 'Failed to update preferences',
@@ -288,11 +296,14 @@ const useAuthStore = create(
        * Upload avatar
        */
       uploadAvatar: async (file) => {
+        const scope = capturePrivateScope();
         set({ isLoading: true, error: null });
         try {
           const { avatarUrl } = await profileApi.uploadAvatar(file);
+          assertPrivateScope(scope);
           // Refresh full user data to get updated avatar and stats
           const updatedUser = await authApi.getCurrentUser();
+          assertPrivateScope(scope);
           set({
             user: updatedUser,
             isLoading: false,
@@ -300,6 +311,7 @@ const useAuthStore = create(
           });
           return avatarUrl;
         } catch (error) {
+          if (!isPrivateScopeCurrent(scope)) throw error;
           set({
             isLoading: false,
             error: error.message || 'Failed to upload avatar',
@@ -325,6 +337,10 @@ const useAuthStore = create(
     }
   )
 );
+
+const accountId = state => state.isAuthenticated ? (state.user?._id || state.user?.id || null) : null;
+setPrivateOwner(accountId(useAuthStore.getState()));
+useAuthStore.subscribe(state => setPrivateOwner(accountId(state)));
 
 authApi.subscribeAuth((token, user) => {
   if (token) useAuthStore.setState({ accessToken: token, ...(user ? { user, isAuthenticated: true, isLoading: false, error: null } : {}) });

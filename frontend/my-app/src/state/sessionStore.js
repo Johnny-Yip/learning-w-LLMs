@@ -6,6 +6,7 @@ import * as chatApi from '../lib/chatApi';
 import * as quizApi from '../lib/quizApi';
 import * as courseApi from '../lib/courseApi';
 import useAuthStore from './authStore';
+import { scopedActions, getPrivateOwner, subscribePrivateScope } from '../lib/privateScope';
 
 // Types (for reference - not enforced at runtime)
 const Phase = 'pre' | 'assessing' | 'learning' | 'quizzing' | 'feedback' | 'completed';
@@ -53,7 +54,7 @@ const initial = {
 
 const useSessionStore = create(
   persist(
-    (set, get) => ({
+    (set, get) => scopedActions((set, get) => ({
       // State
       ...initial,
 
@@ -413,19 +414,23 @@ const useSessionStore = create(
           (!latest.quizDraft || latest.quizDraft.length === 0)
         ) {
           queueMicrotask(() => {
-            const current = get();
-            if (
-              current.pendingQuizModuleId &&
-              current.phase === 'quizzing' &&
-              (!current.quizDraft || current.quizDraft.length === 0)
-            ) {
-              get().startQuizFromChat(current.pendingQuizModuleId)
-                .then(() => {
-                  set({ pendingQuizModuleId: null });
-                })
-                .catch(err => {
-                  console.error('Deferred quiz start failed:', err);
-                });
+            try {
+              const current = get();
+              if (
+                current.pendingQuizModuleId &&
+                current.phase === 'quizzing' &&
+                (!current.quizDraft || current.quizDraft.length === 0)
+              ) {
+                get().startQuizFromChat(current.pendingQuizModuleId)
+                  .then(() => {
+                    set({ pendingQuizModuleId: null });
+                  })
+                  .catch(err => {
+                    console.error('Deferred quiz start failed:', err);
+                  });
+              }
+            } catch (error) {
+              if (error.code !== 'AUTH_CANCELLED') console.error('Deferred quiz start failed:', error);
             }
           });
         }
@@ -433,34 +438,7 @@ const useSessionStore = create(
 
       // Clear current session (for reset/start fresh)
       clearSession: () => {
-        set({
-          sessionId: null,
-          phase: 'pre',
-          mode: 'studying',
-          topic: '',
-          chatTitle: '',
-          plan: [],
-          activeModuleId: null,
-          points: 0,
-          gems: 0,
-          progressPct: 0,
-          isViewOnly: false,
-          messages: [],
-          totalMessageCount: null,
-          hasMoreMessages: false,
-          model: 'llama',
-          meta: {
-            countSinceLastCheck: 0,
-            outstandingCheck: null,
-            assessClarifyCount: 0
-          },
-          loading: false,
-          error: null,
-          quizDraft: null,
-          quizResult: null,
-          isQuizSubmitting: false,
-          pendingQuizModuleId: null
-        });
+        set({ ...initial });
       },
 
       // API Actions (thunks)
@@ -734,6 +712,8 @@ const useSessionStore = create(
               }
             });
           } catch (streamError) {
+            // A cancelled account request must not fall back using new credentials.
+            get();
             console.warn('Streaming failed, falling back to non-streaming', streamError.message);
             if (hadStreamChunks) {
               get().removeLastAssistantMessage();
@@ -855,6 +835,7 @@ const useSessionStore = create(
               // Refresh user data to sync gems in profile chip after points/gems update
               if (pointsOrGemsUpdated) {
                 try {
+                  get(); // Verify the initiating account before starting another request.
                   await useAuthStore.getState().fetchUser();
                   console.log('User data refreshed after points/gems update for profile sync');
                 } catch (userRefreshError) {
@@ -873,6 +854,7 @@ const useSessionStore = create(
                 
                 // Refresh user data to sync gems in profile chip after milestone completion
                 try {
+                  get(); // Verify the initiating account before starting another request.
                   await useAuthStore.getState().fetchUser();
                   console.log('User data refreshed after milestone completion for gems sync');
                 } catch (userRefreshError) {
@@ -894,6 +876,7 @@ const useSessionStore = create(
                 
                 // Refresh user data to sync gems in profile chip after points update
                 try {
+                  get(); // Verify the initiating account before starting another request.
                   await useAuthStore.getState().fetchUser();
                   console.log('User data refreshed after points update for gems sync');
                 } catch (userRefreshError) {
@@ -1203,6 +1186,7 @@ const useSessionStore = create(
           // Refresh user data to sync gems in profile chip
           // This ensures the global user stats (gemsTotal) are updated after quiz completion
           try {
+            get(); // Verify the initiating account before starting another request.
             await useAuthStore.getState().fetchUser();
             console.log('User data refreshed after quiz submit for gems sync');
           } catch (userRefreshError) {
@@ -1344,10 +1328,11 @@ const useSessionStore = create(
         return phaseNames[get().phase] || get().phase;
       },
 
-    }),
+    }), set, get),
     {
       name: 'session-storage',
       partialize: (state) => ({
+        ownerId: getPrivateOwner(),
         sessionId: state.sessionId,
         phase: state.phase,
         mode: state.mode,
@@ -1362,18 +1347,29 @@ const useSessionStore = create(
         profile: state.profile,
         model: state.model
       }),
-      // Ensure mode defaults to 'studying' for new users or if mode is invalid
-      merge: (persistedState, currentState) => ({
-        ...currentState,
-        ...persistedState,
-        // Always default to 'studying' if mode is not set or invalid
-        mode: (persistedState?.mode === 'studying' || persistedState?.mode === 'revision') 
-          ? persistedState.mode 
-          : 'studying'
-      })
+      // Legacy unscoped snapshots and another account's cache must never hydrate.
+      merge: (persistedState, currentState) => {
+        const owner = getPrivateOwner();
+        const { ownerId: snapshotOwner, ...cached } = persistedState || {};
+        if (!owner || snapshotOwner !== owner) {
+          localStorage.removeItem('session-storage');
+          return { ...currentState, ...initial };
+        }
+        return {
+          ...currentState,
+          ...cached,
+          mode: ['studying', 'revision'].includes(cached.mode) ? cached.mode : 'studying',
+        };
+      },
     }
   )
 );
+
+subscribePrivateScope(() => {
+  // Cache-only cleanup. Never create or delete a MongoDB session here.
+  useSessionStore.setState({ ...initial });
+  useSessionStore.persist.clearStorage();
+});
 
 if (process.env.NODE_ENV === 'development') {
   useSessionStore.subscribe((state, previous) => {

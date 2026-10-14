@@ -1,9 +1,10 @@
+import { guardedFetch } from './privateScope';
 import { API_BASE } from '../config';
 import { getAuthHeaders } from './authApi';
 import { safeReadResponse, extractErrorMessage, isRateLimited } from './responseUtils';
 
 export async function assess({ sessionId, userMessage, mode, profile }) {
-  const response = await fetch(`${API_BASE}/v1/assessment`, {
+  const response = await guardedFetch(`${API_BASE}/v1/assessment`, {
     method: 'POST',
     headers: getAuthHeaders(),
     credentials: 'include',
@@ -29,7 +30,7 @@ export async function assess({ sessionId, userMessage, mode, profile }) {
 }
 
 export async function approvePlan({ sessionId }) {
-  const response = await fetch(`${API_BASE}/v1/assessment/approve`, {
+  const response = await guardedFetch(`${API_BASE}/v1/assessment/approve`, {
     method: 'POST',
     headers: getAuthHeaders(),
     credentials: 'include',
@@ -52,7 +53,7 @@ export async function approvePlan({ sessionId }) {
 }
 
 export async function modifyPlan({ sessionId, modificationRequest }) {
-  const response = await fetch(`${API_BASE}/v1/assessment/modify`, {
+  const response = await guardedFetch(`${API_BASE}/v1/assessment/modify`, {
     method: 'POST',
     headers: getAuthHeaders(),
     credentials: 'include',
@@ -77,7 +78,7 @@ export async function modifyPlan({ sessionId, modificationRequest }) {
 
 // Legacy method for backward compatibility (no longer used but kept for reference)
 export async function answerClarify(sessionId, answers) {
-  const response = await fetch(`${API_BASE}/v1/assessment`, {
+  const response = await guardedFetch(`${API_BASE}/v1/assessment`, {
     method: 'POST',
     headers: getAuthHeaders(),
     credentials: 'include',

@@ -1,3 +1,4 @@
+import { guardedFetch } from './privateScope';
 /**
  * Profile API client
  */
@@ -13,7 +14,7 @@ const API_PREFIX = `${API_BASE}/v1/profile`;
  * @returns {Promise<{profile: Object, preferences: Object, stats: Object}>}
  */
 export async function getProfile() {
-  const response = await fetch(`${API_PREFIX}`, {
+  const response = await guardedFetch(`${API_PREFIX}`, {
     method: 'GET',
     headers: getAuthHeaders(),
     credentials: 'include',
@@ -35,7 +36,7 @@ export async function getProfile() {
  * @returns {Promise<{profile: Object}>}
  */
 export async function updateProfile(profileData) {
-  const response = await fetch(`${API_PREFIX}`, {
+  const response = await guardedFetch(`${API_PREFIX}`, {
     method: 'PUT',
     headers: getAuthHeaders(),
     credentials: 'include',
@@ -58,7 +59,7 @@ export async function updateProfile(profileData) {
  * @returns {Promise<{preferences: Object}>}
  */
 export async function updatePreferences(preferences) {
-  const response = await fetch(`${API_PREFIX}/preferences`, {
+  const response = await guardedFetch(`${API_PREFIX}/preferences`, {
     method: 'PATCH',
     headers: getAuthHeaders(),
     credentials: 'include',
@@ -91,7 +92,7 @@ export async function uploadAvatar(file) {
   }
   // Don't set Content-Type - let browser set it with boundary for multipart/form-data
 
-  const response = await fetch(`${API_PREFIX}/avatar`, {
+  const response = await guardedFetch(`${API_PREFIX}/avatar`, {
     method: 'POST',
     headers,
     credentials: 'include',
@@ -115,7 +116,7 @@ export async function uploadAvatar(file) {
  * @returns {Promise<{message: string}>}
  */
 export async function changePassword(currentPassword, newPassword) {
-  const response = await fetch(`${API_PREFIX}/password`, {
+  const response = await guardedFetch(`${API_PREFIX}/password`, {
     method: 'PATCH',
     headers: getAuthHeaders(),
     credentials: 'include',
@@ -138,7 +139,7 @@ export async function changePassword(currentPassword, newPassword) {
  * @returns {Promise<{message: string}>}
  */
 export async function completeOnboarding() {
-  const response = await fetch(`${API_PREFIX}/onboarding/complete`, {
+  const response = await guardedFetch(`${API_PREFIX}/onboarding/complete`, {
     method: 'POST',
     headers: getAuthHeaders(),
     credentials: 'include',
@@ -161,7 +162,7 @@ export async function completeOnboarding() {
  * @returns {Promise<{certificateId: string, downloadUrl: string}>}
  */
 export async function generateCertificate(sessionId, topic) {
-  const response = await fetch(`${API_PREFIX}/certificates/generate`, {
+  const response = await guardedFetch(`${API_PREFIX}/certificates/generate`, {
     method: 'POST',
     headers: getAuthHeaders(),
     credentials: 'include',
@@ -183,7 +184,7 @@ export async function generateCertificate(sessionId, topic) {
  * @returns {Promise<Array<{certificateId: string, topic: string, issuedAt: string, downloadUrl: string}>>}
  */
 export async function getCertificates() {
-  const response = await fetch(`${API_PREFIX}/certificates`, {
+  const response = await guardedFetch(`${API_PREFIX}/certificates`, {
     method: 'GET',
     headers: getAuthHeaders(),
     credentials: 'include',
@@ -205,7 +206,7 @@ export async function getCertificates() {
  * @returns {Promise<Blob>}
  */
 export async function downloadCertificate(certificateId) {
-  const response = await fetch(`${API_PREFIX}/certificates/${certificateId}/download`, {
+  const response = await guardedFetch(`${API_PREFIX}/certificates/${certificateId}/download`, {
     method: 'GET',
     headers: getAuthHeaders(),
     credentials: 'include',

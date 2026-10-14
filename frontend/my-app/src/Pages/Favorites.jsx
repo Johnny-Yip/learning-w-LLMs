@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import * as sessionApi from '../lib/sessionApi';
+import { capturePrivateScope, assertPrivateScope } from '../lib/privateScope';
 import useSessionStore from '../state/sessionStore';
 import '../styles/Favorites.css';
 
@@ -89,9 +90,11 @@ function Favorites() {
   };
 
   const handleRenameSession = async (e, sessionId, newTitle) => {
+    const scope = capturePrivateScope();
     e.stopPropagation();
     try {
       const response = await sessionApi.updateSessionTitle(sessionId, newTitle);
+      assertPrivateScope(scope);
       // Update local session store if this is the current session
       if (currentSessionId === sessionId) {
         useSessionStore.setState({ 

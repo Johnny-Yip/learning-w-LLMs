@@ -1,3 +1,4 @@
+import { guardedFetch } from './privateScope';
 import { API_BASE } from '../config';
 import { getAuthHeaders } from './authApi';
 import { safeReadResponse, extractErrorMessage } from './responseUtils';
@@ -30,7 +31,7 @@ export async function createSession(profile) {
 }
 
 export async function getSession(sessionId) {
-  const response = await fetch(`${API_BASE}/v1/sessions/${sessionId}`, {
+  const response = await guardedFetch(`${API_BASE}/v1/sessions/${sessionId}`, {
     method: 'GET',
     headers: getAuthHeaders(),
     credentials: 'include',
@@ -47,7 +48,7 @@ export async function getSession(sessionId) {
 }
 
 export async function resumeSession(sessionId) {
-  const response = await fetch(`${API_BASE}/v1/sessions/${sessionId}/resume`, {
+  const response = await guardedFetch(`${API_BASE}/v1/sessions/${sessionId}/resume`, {
     method: 'POST',
     headers: getAuthHeaders(),
     credentials: 'include',
@@ -66,7 +67,7 @@ export async function resumeSession(sessionId) {
 /** Paginated messages for display. fromEnd=0 returns newest page; increase to load older. */
 export async function getSessionMessages(sessionId, { limit = 20, fromEnd = 0 } = {}) {
   const url = `${API_BASE}/v1/sessions/${sessionId}/messages?limit=${limit}&fromEnd=${fromEnd}`;
-  const response = await fetch(url, {
+  const response = await guardedFetch(url, {
     method: 'GET',
     headers: getAuthHeaders(),
     credentials: 'include',
@@ -87,7 +88,7 @@ export async function getSessionMessages(sessionId, { limit = 20, fromEnd = 0 } 
  */
 export async function getSessionMessagesWithFallback(sessionId, { limit = 20, fromEnd = 0 } = {}) {
   const url = `${API_BASE}/v1/sessions/${sessionId}/messages?limit=${limit}&fromEnd=${fromEnd}`;
-  const response = await fetch(url, {
+  const response = await guardedFetch(url, {
     method: 'GET',
     headers: getAuthHeaders(),
     credentials: 'include',
@@ -124,7 +125,7 @@ export async function getSessions(limit = 20, options = {}) {
     url += `&status=${encodeURIComponent(status)}`;
   }
   
-  const response = await fetch(url, {
+  const response = await guardedFetch(url, {
     method: 'GET',
     headers: getAuthHeaders(),
     credentials: 'include',
@@ -141,7 +142,7 @@ export async function getSessions(limit = 20, options = {}) {
 }
 
 export async function searchSessions(query, limit = 20) {
-  const response = await fetch(`${API_BASE}/v1/sessions/search?q=${encodeURIComponent(query)}&limit=${limit}`, {
+  const response = await guardedFetch(`${API_BASE}/v1/sessions/search?q=${encodeURIComponent(query)}&limit=${limit}`, {
     method: 'GET',
     headers: getAuthHeaders(),
     credentials: 'include',
@@ -158,7 +159,7 @@ export async function searchSessions(query, limit = 20) {
 }
 
 export async function toggleFavorite(sessionId, isFavorite) {
-  const response = await fetch(`${API_BASE}/v1/sessions/${sessionId}/favorite`, {
+  const response = await guardedFetch(`${API_BASE}/v1/sessions/${sessionId}/favorite`, {
     method: 'PATCH',
     headers: getAuthHeaders(),
     credentials: 'include',
@@ -176,7 +177,7 @@ export async function toggleFavorite(sessionId, isFavorite) {
 }
 
 export async function deleteSession(sessionId) {
-  const response = await fetch(`${API_BASE}/v1/sessions/${sessionId}`, {
+  const response = await guardedFetch(`${API_BASE}/v1/sessions/${sessionId}`, {
     method: 'DELETE',
     headers: getAuthHeaders(),
     credentials: 'include',
@@ -193,7 +194,7 @@ export async function deleteSession(sessionId) {
 }
 
 export async function updateSessionTitle(sessionId, chatTitle) {
-  const response = await fetch(`${API_BASE}/v1/sessions/${sessionId}`, {
+  const response = await guardedFetch(`${API_BASE}/v1/sessions/${sessionId}`, {
     method: 'PATCH',
     headers: getAuthHeaders(),
     credentials: 'include',
@@ -212,7 +213,7 @@ export async function updateSessionTitle(sessionId, chatTitle) {
 
 // Legacy methods for backward compatibility
 export async function updateSessionStage(sessionId, stage) {
-  const response = await fetch(`${API_BASE}/session/${sessionId}`, {
+  const response = await guardedFetch(`${API_BASE}/session/${sessionId}`, {
     method: 'PATCH',
     headers: {
       'Content-Type': 'application/json',
@@ -231,7 +232,7 @@ export async function updateSessionStage(sessionId, stage) {
 }
 
 export async function updateSessionNotes(sessionId, notes) {
-  const response = await fetch(`${API_BASE}/session/${sessionId}/notes`, {
+  const response = await guardedFetch(`${API_BASE}/session/${sessionId}/notes`, {
     method: 'PATCH',
     headers: {
       'Content-Type': 'application/json',

@@ -8,7 +8,7 @@ An intelligent, chat-based learning platform that helps users study and revise t
 
 - **Node.js** (v18 or higher)
 - **MongoDB** (local installation or MongoDB Atlas)
-- **API Keys**: Groq API key (or OpenAI API key)
+- **API Keys**: Groq API key for AI Chat (OpenAI is optional for book embeddings)
 - **Git** (for cloning the repository)
 
 ### Setup
@@ -53,6 +53,8 @@ npm start
 
 ### Running the Application
 
+The frontend development server binds to loopback by default and keeps host checks enabled. `npm start` uses the existing CRA proxy; it does not require a LAN address.
+
 You'll need **two terminals** running simultaneously:
 
 **Terminal 1 - Backend:**
@@ -78,8 +80,8 @@ Copy `backend/.env.example` to `backend/.env` and configure:
 PORT=5001
 MONGODB_URI=mongodb://localhost:27017/studyassist
 CORS_ORIGINS=http://localhost:3000
-LLM_PROVIDER=groq
-LLM_MODEL=llama3.1
+GROQ_MODEL=openai/gpt-oss-120b
+GROQ_MODEL_CHEAP=openai/gpt-oss-120b
 GROQ_API_KEY=your_groq_api_key_here
 OPENAI_API_KEY=your_openai_api_key_here
 ```
@@ -104,7 +106,7 @@ REACT_APP_API_BASE_URL=
 ### Tech Stack
 - **Frontend**: React 18, Zustand (state management), Tailwind CSS
 - **Backend**: Node.js, Express, MongoDB (Mongoose)
-- **LLM Provider**: Groq (Llama) → Future: Local models
+- **LLM Provider**: Groq (`openai/gpt-oss-120b`)
 - **Security**: Helmet, Rate limiting, CORS
 
 ### Project Structure

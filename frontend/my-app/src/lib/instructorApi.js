@@ -1,3 +1,4 @@
+import { guardedFetch } from './privateScope';
 import { API_BASE } from '../config';
 import { getAuthHeaders } from './authApi';
 import { safeReadResponse, extractErrorMessage } from './responseUtils';
@@ -12,7 +13,7 @@ async function parse(response) {
 
 export async function listInstructorCourses() {
   return parse(
-    await fetch(`${API_BASE}/v1/instructor/courses`, {
+    await guardedFetch(`${API_BASE}/v1/instructor/courses`, {
       method: 'GET',
       headers: getAuthHeaders(),
       credentials: 'include',
@@ -22,7 +23,7 @@ export async function listInstructorCourses() {
 
 export async function createCourse(body) {
   return parse(
-    await fetch(`${API_BASE}/v1/instructor/courses`, {
+    await guardedFetch(`${API_BASE}/v1/instructor/courses`, {
       method: 'POST',
       headers: getAuthHeaders(),
       credentials: 'include',
@@ -33,7 +34,7 @@ export async function createCourse(body) {
 
 export async function getCourse(courseId) {
   return parse(
-    await fetch(`${API_BASE}/v1/instructor/courses/${courseId}`, {
+    await guardedFetch(`${API_BASE}/v1/instructor/courses/${courseId}`, {
       method: 'GET',
       headers: getAuthHeaders(),
       credentials: 'include',
@@ -43,7 +44,7 @@ export async function getCourse(courseId) {
 
 export async function updateCourse(courseId, body) {
   return parse(
-    await fetch(`${API_BASE}/v1/instructor/courses/${courseId}`, {
+    await guardedFetch(`${API_BASE}/v1/instructor/courses/${courseId}`, {
       method: 'PATCH',
       headers: getAuthHeaders(),
       credentials: 'include',
@@ -54,7 +55,7 @@ export async function updateCourse(courseId, body) {
 
 export async function archiveCourse(courseId) {
   return parse(
-    await fetch(`${API_BASE}/v1/instructor/courses/${courseId}/archive`, {
+    await guardedFetch(`${API_BASE}/v1/instructor/courses/${courseId}/archive`, {
       method: 'POST',
       headers: getAuthHeaders(),
       credentials: 'include',
@@ -64,7 +65,7 @@ export async function archiveCourse(courseId) {
 
 export async function deleteCourse(courseId) {
   return parse(
-    await fetch(`${API_BASE}/v1/instructor/courses/${courseId}`, {
+    await guardedFetch(`${API_BASE}/v1/instructor/courses/${courseId}`, {
       method: 'DELETE',
       headers: getAuthHeaders(),
       credentials: 'include',
@@ -90,7 +91,7 @@ export async function uploadCourseSources(courseId, files, roles) {
   files.forEach((f) => form.append('files', f));
   const r = roles && roles.length === files.length ? roles : null;
   form.append('roles', JSON.stringify(r || []));
-  const response = await fetch(`${API_BASE}/v1/instructor/courses/${courseId}/sources`, {
+  const response = await guardedFetch(`${API_BASE}/v1/instructor/courses/${courseId}/sources`, {
     method: 'POST',
     headers: {
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -108,7 +109,7 @@ export async function uploadCourseSource(courseId, file, role = 'syllabus') {
 
 export async function deleteCourseSource(courseId, sourceId) {
   return parse(
-    await fetch(`${API_BASE}/v1/instructor/courses/${courseId}/sources/${sourceId}`, {
+    await guardedFetch(`${API_BASE}/v1/instructor/courses/${courseId}/sources/${sourceId}`, {
       method: 'DELETE',
       headers: getAuthHeaders(),
       credentials: 'include',
@@ -118,7 +119,7 @@ export async function deleteCourseSource(courseId, sourceId) {
 
 export async function updateCourseSourceRole(courseId, sourceId, role) {
   return parse(
-    await fetch(`${API_BASE}/v1/instructor/courses/${courseId}/sources/${sourceId}`, {
+    await guardedFetch(`${API_BASE}/v1/instructor/courses/${courseId}/sources/${sourceId}`, {
       method: 'PATCH',
       headers: getAuthHeaders(),
       credentials: 'include',
@@ -130,7 +131,7 @@ export async function updateCourseSourceRole(courseId, sourceId, role) {
 /** Book ingestion (feature-flagged server-side; 403 FEATURE_DISABLED when off). */
 export async function ingestCourseSource(courseId, sourceId) {
   return parse(
-    await fetch(`${API_BASE}/v1/instructor/courses/${courseId}/sources/${sourceId}/ingest`, {
+    await guardedFetch(`${API_BASE}/v1/instructor/courses/${courseId}/sources/${sourceId}/ingest`, {
       method: 'POST',
       headers: getAuthHeaders(),
       credentials: 'include',
@@ -140,7 +141,7 @@ export async function ingestCourseSource(courseId, sourceId) {
 
 export async function getBookCoverage(courseId) {
   return parse(
-    await fetch(`${API_BASE}/v1/instructor/courses/${courseId}/book-coverage`, {
+    await guardedFetch(`${API_BASE}/v1/instructor/courses/${courseId}/book-coverage`, {
       headers: getAuthHeaders(),
       credentials: 'include',
     })
@@ -149,7 +150,7 @@ export async function getBookCoverage(courseId) {
 
 export async function listTopics(courseId) {
   return parse(
-    await fetch(`${API_BASE}/v1/instructor/courses/${courseId}/topics`, {
+    await guardedFetch(`${API_BASE}/v1/instructor/courses/${courseId}/topics`, {
       method: 'GET',
       headers: getAuthHeaders(),
       credentials: 'include',
@@ -159,7 +160,7 @@ export async function listTopics(courseId) {
 
 export async function createTopic(courseId, body) {
   return parse(
-    await fetch(`${API_BASE}/v1/instructor/courses/${courseId}/topics`, {
+    await guardedFetch(`${API_BASE}/v1/instructor/courses/${courseId}/topics`, {
       method: 'POST',
       headers: getAuthHeaders(),
       credentials: 'include',
@@ -170,7 +171,7 @@ export async function createTopic(courseId, body) {
 
 export async function getTopic(courseId, topicId) {
   return parse(
-    await fetch(`${API_BASE}/v1/instructor/courses/${courseId}/topics/${topicId}`, {
+    await guardedFetch(`${API_BASE}/v1/instructor/courses/${courseId}/topics/${topicId}`, {
       method: 'GET',
       headers: getAuthHeaders(),
       credentials: 'include',
@@ -180,7 +181,7 @@ export async function getTopic(courseId, topicId) {
 
 export async function updateTopic(courseId, topicId, body) {
   return parse(
-    await fetch(`${API_BASE}/v1/instructor/courses/${courseId}/topics/${topicId}`, {
+    await guardedFetch(`${API_BASE}/v1/instructor/courses/${courseId}/topics/${topicId}`, {
       method: 'PATCH',
       headers: getAuthHeaders(),
       credentials: 'include',
@@ -191,7 +192,7 @@ export async function updateTopic(courseId, topicId, body) {
 
 export async function deleteTopic(courseId, topicId) {
   return parse(
-    await fetch(`${API_BASE}/v1/instructor/courses/${courseId}/topics/${topicId}`, {
+    await guardedFetch(`${API_BASE}/v1/instructor/courses/${courseId}/topics/${topicId}`, {
       method: 'DELETE',
       headers: getAuthHeaders(),
       credentials: 'include',
@@ -201,7 +202,7 @@ export async function deleteTopic(courseId, topicId) {
 
 export async function approveTopic(courseId, topicId) {
   return parse(
-    await fetch(`${API_BASE}/v1/instructor/courses/${courseId}/topics/${topicId}/approve`, {
+    await guardedFetch(`${API_BASE}/v1/instructor/courses/${courseId}/topics/${topicId}/approve`, {
       method: 'POST',
       headers: getAuthHeaders(),
       credentials: 'include',
@@ -211,7 +212,7 @@ export async function approveTopic(courseId, topicId) {
 
 export async function publishTopic(courseId, topicId) {
   return parse(
-    await fetch(`${API_BASE}/v1/instructor/courses/${courseId}/topics/${topicId}/publish`, {
+    await guardedFetch(`${API_BASE}/v1/instructor/courses/${courseId}/topics/${topicId}/publish`, {
       method: 'POST',
       headers: getAuthHeaders(),
       credentials: 'include',
@@ -221,7 +222,7 @@ export async function publishTopic(courseId, topicId) {
 
 export async function unpublishTopic(courseId, topicId) {
   return parse(
-    await fetch(`${API_BASE}/v1/instructor/courses/${courseId}/topics/${topicId}/unpublish`, {
+    await guardedFetch(`${API_BASE}/v1/instructor/courses/${courseId}/topics/${topicId}/unpublish`, {
       method: 'POST',
       headers: getAuthHeaders(),
       credentials: 'include',
@@ -234,7 +235,7 @@ export async function generateTopicPlan(courseId, message, topicCount) {
   if (message) payload.message = message;
   if (topicCount != null && topicCount !== '') payload.topicCount = Number(topicCount);
   return parse(
-    await fetch(`${API_BASE}/v1/instructor/courses/${courseId}/topic-plan/generate`, {
+    await guardedFetch(`${API_BASE}/v1/instructor/courses/${courseId}/topic-plan/generate`, {
       method: 'POST',
       headers: getAuthHeaders(),
       credentials: 'include',
@@ -247,7 +248,7 @@ export async function modifyTopicPlan(courseId, message, topicCount) {
   const payload = { message };
   if (topicCount != null && topicCount !== '') payload.topicCount = Number(topicCount);
   return parse(
-    await fetch(`${API_BASE}/v1/instructor/courses/${courseId}/topic-plan/modify`, {
+    await guardedFetch(`${API_BASE}/v1/instructor/courses/${courseId}/topic-plan/modify`, {
       method: 'POST',
       headers: getAuthHeaders(),
       credentials: 'include',
@@ -258,7 +259,7 @@ export async function modifyTopicPlan(courseId, message, topicCount) {
 
 export async function getTopicPlanChat(courseId) {
   return parse(
-    await fetch(`${API_BASE}/v1/instructor/courses/${courseId}/topic-plan/chat`, {
+    await guardedFetch(`${API_BASE}/v1/instructor/courses/${courseId}/topic-plan/chat`, {
       method: 'GET',
       headers: getAuthHeaders(),
       credentials: 'include',
@@ -268,7 +269,7 @@ export async function getTopicPlanChat(courseId) {
 
 export async function aiModifyTopic(courseId, topicId, message) {
   return parse(
-    await fetch(`${API_BASE}/v1/instructor/courses/${courseId}/topics/${topicId}/ai-modify`, {
+    await guardedFetch(`${API_BASE}/v1/instructor/courses/${courseId}/topics/${topicId}/ai-modify`, {
       method: 'POST',
       headers: getAuthHeaders(),
       credentials: 'include',
@@ -279,7 +280,7 @@ export async function aiModifyTopic(courseId, topicId, message) {
 
 export async function getCourseAnalytics(courseId) {
   return parse(
-    await fetch(`${API_BASE}/v1/instructor/courses/${courseId}/analytics`, {
+    await guardedFetch(`${API_BASE}/v1/instructor/courses/${courseId}/analytics`, {
       method: 'GET',
       headers: getAuthHeaders(),
       credentials: 'include',
@@ -289,7 +290,7 @@ export async function getCourseAnalytics(courseId) {
 
 export async function getCoursePerformanceSummary(courseId) {
   return parse(
-    await fetch(`${API_BASE}/v1/instructor/courses/${courseId}/analytics/performance`, {
+    await guardedFetch(`${API_BASE}/v1/instructor/courses/${courseId}/analytics/performance`, {
       method: 'GET',
       headers: getAuthHeaders(),
       credentials: 'include',
@@ -299,7 +300,7 @@ export async function getCoursePerformanceSummary(courseId) {
 
 export async function getCourseInsights(courseId) {
   return parse(
-    await fetch(`${API_BASE}/v1/instructor/courses/${courseId}/insights`, {
+    await guardedFetch(`${API_BASE}/v1/instructor/courses/${courseId}/insights`, {
       method: 'GET',
       headers: getAuthHeaders(),
       credentials: 'include',
@@ -309,7 +310,7 @@ export async function getCourseInsights(courseId) {
 
 export async function getStudentProgress(courseId) {
   return parse(
-    await fetch(`${API_BASE}/v1/instructor/courses/${courseId}/students`, {
+    await guardedFetch(`${API_BASE}/v1/instructor/courses/${courseId}/students`, {
       method: 'GET',
       headers: getAuthHeaders(),
       credentials: 'include',
@@ -320,7 +321,7 @@ export async function getStudentProgress(courseId) {
 /** Run simulation: two synthetic students work a module against the real tutor. */
 export async function startSimulation(courseId, topicId) {
   return parse(
-    await fetch(`${API_BASE}/v1/instructor/courses/${courseId}/simulations`, {
+    await guardedFetch(`${API_BASE}/v1/instructor/courses/${courseId}/simulations`, {
       method: 'POST',
       headers: getAuthHeaders(),
       credentials: 'include',
@@ -331,7 +332,7 @@ export async function startSimulation(courseId, topicId) {
 
 export async function getSimulation(courseId, runId) {
   return parse(
-    await fetch(`${API_BASE}/v1/instructor/courses/${courseId}/simulations/${runId}`, {
+    await guardedFetch(`${API_BASE}/v1/instructor/courses/${courseId}/simulations/${runId}`, {
       headers: getAuthHeaders(),
       credentials: 'include',
     })
@@ -340,7 +341,7 @@ export async function getSimulation(courseId, runId) {
 
 export async function listSimulations(courseId) {
   return parse(
-    await fetch(`${API_BASE}/v1/instructor/courses/${courseId}/simulations`, {
+    await guardedFetch(`${API_BASE}/v1/instructor/courses/${courseId}/simulations`, {
       headers: getAuthHeaders(),
       credentials: 'include',
     })
@@ -355,7 +356,7 @@ export async function listSimulations(courseId) {
 export async function discardSimulation(courseId, runId, { dryRun = false } = {}) {
   const qs = dryRun ? '?dryRun=1' : '';
   return parse(
-    await fetch(`${API_BASE}/v1/instructor/courses/${courseId}/simulations/${runId}${qs}`, {
+    await guardedFetch(`${API_BASE}/v1/instructor/courses/${courseId}/simulations/${runId}${qs}`, {
       method: 'DELETE',
       headers: getAuthHeaders(),
       credentials: 'include',
@@ -366,7 +367,7 @@ export async function discardSimulation(courseId, runId, { dryRun = false } = {}
 /** Re-run one failed persona, keeping the other student's transcript. */
 export async function retrySimulationStudent(courseId, runId, persona) {
   return parse(
-    await fetch(
+    await guardedFetch(
       `${API_BASE}/v1/instructor/courses/${courseId}/simulations/${runId}/students/${persona}/retry`,
       { method: 'POST', headers: getAuthHeaders(), credentials: 'include' }
     )
@@ -377,7 +378,7 @@ export async function retrySimulationStudent(courseId, runId, persona) {
 export async function getRefusalLog(courseId, studentId) {
   const qs = studentId ? `?studentId=${studentId}` : '';
   return parse(
-    await fetch(`${API_BASE}/v1/instructor/courses/${courseId}/refusals${qs}`, {
+    await guardedFetch(`${API_BASE}/v1/instructor/courses/${courseId}/refusals${qs}`, {
       headers: getAuthHeaders(),
       credentials: 'include',
     })
@@ -386,7 +387,7 @@ export async function getRefusalLog(courseId, studentId) {
 
 export async function getStudentDetail(courseId, studentId) {
   return parse(
-    await fetch(`${API_BASE}/v1/instructor/courses/${courseId}/students/${studentId}`, {
+    await guardedFetch(`${API_BASE}/v1/instructor/courses/${courseId}/students/${studentId}`, {
       method: 'GET',
       headers: getAuthHeaders(),
       credentials: 'include',
@@ -397,7 +398,7 @@ export async function getStudentDetail(courseId, studentId) {
 // Risk Insights v2 — per-student risk trend (5 weekly snapshots over 28 days).
 export async function getRiskTrend(courseId, studentId) {
   return parse(
-    await fetch(`${API_BASE}/v1/instructor/courses/${courseId}/students/${studentId}/risk-trend`, {
+    await guardedFetch(`${API_BASE}/v1/instructor/courses/${courseId}/students/${studentId}/risk-trend`, {
       method: 'GET',
       headers: getAuthHeaders(),
       credentials: 'include',
@@ -409,7 +410,7 @@ export async function getRiskTrend(courseId, studentId) {
 // classContext: 'doing_well_in_class' | 'confirmed_at_risk' | null
 export async function updateClassContext(courseId, studentId, classContext) {
   return parse(
-    await fetch(`${API_BASE}/v1/instructor/courses/${courseId}/students/${studentId}/class-context`, {
+    await guardedFetch(`${API_BASE}/v1/instructor/courses/${courseId}/students/${studentId}/class-context`, {
       method: 'PUT',
       headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
       credentials: 'include',
@@ -420,7 +421,7 @@ export async function updateClassContext(courseId, studentId, classContext) {
 
 export async function getInstructorSession(courseId, sessionId) {
   return parse(
-    await fetch(`${API_BASE}/v1/instructor/courses/${courseId}/sessions/${sessionId}`, {
+    await guardedFetch(`${API_BASE}/v1/instructor/courses/${courseId}/sessions/${sessionId}`, {
       method: 'GET',
       headers: getAuthHeaders(),
       credentials: 'include',
@@ -433,7 +434,7 @@ export async function getInstructorSessionMessages(courseId, sessionId, { fromEn
   params.set('fromEnd', String(fromEnd));
   params.set('limit', String(limit));
   return parse(
-    await fetch(`${API_BASE}/v1/instructor/courses/${courseId}/sessions/${sessionId}/messages?${params.toString()}`, {
+    await guardedFetch(`${API_BASE}/v1/instructor/courses/${courseId}/sessions/${sessionId}/messages?${params.toString()}`, {
       method: 'GET',
       headers: getAuthHeaders(),
       credentials: 'include',
@@ -443,7 +444,7 @@ export async function getInstructorSessionMessages(courseId, sessionId, { fromEn
 
 export async function getInstructorSessionQuizzes(courseId, sessionId) {
   return parse(
-    await fetch(`${API_BASE}/v1/instructor/courses/${courseId}/sessions/${sessionId}/quizzes`, {
+    await guardedFetch(`${API_BASE}/v1/instructor/courses/${courseId}/sessions/${sessionId}/quizzes`, {
       method: 'GET',
       headers: getAuthHeaders(),
       credentials: 'include',
@@ -456,7 +457,7 @@ export async function getStudentNotes(courseId, studentId, { courseTopicId = nul
   if (courseTopicId) params.set('courseTopicId', String(courseTopicId));
   const qs = params.toString();
   return parse(
-    await fetch(`${API_BASE}/v1/instructor/courses/${courseId}/students/${studentId}/notes${qs ? `?${qs}` : ''}`, {
+    await guardedFetch(`${API_BASE}/v1/instructor/courses/${courseId}/students/${studentId}/notes${qs ? `?${qs}` : ''}`, {
       method: 'GET',
       headers: getAuthHeaders(),
       credentials: 'include',
@@ -466,7 +467,7 @@ export async function getStudentNotes(courseId, studentId, { courseTopicId = nul
 
 export async function upsertStudentNotes(courseId, studentId, { courseTopicId = null, tags = [], note = '' } = {}) {
   return parse(
-    await fetch(`${API_BASE}/v1/instructor/courses/${courseId}/students/${studentId}/notes`, {
+    await guardedFetch(`${API_BASE}/v1/instructor/courses/${courseId}/students/${studentId}/notes`, {
       method: 'POST',
       headers: getAuthHeaders(),
       credentials: 'include',
@@ -481,7 +482,7 @@ function buildSyntheticQS(includeSynthetic) {
 
 export async function getCourseTree(courseId, { includeSynthetic = false } = {}) {
   return parse(
-    await fetch(`${API_BASE}/v1/instructor/courses/${courseId}/tree${buildSyntheticQS(includeSynthetic)}`, {
+    await guardedFetch(`${API_BASE}/v1/instructor/courses/${courseId}/tree${buildSyntheticQS(includeSynthetic)}`, {
       method: 'GET',
       headers: getAuthHeaders(),
       credentials: 'include',
@@ -491,7 +492,7 @@ export async function getCourseTree(courseId, { includeSynthetic = false } = {})
 
 export async function getMilestoneStats(courseId, { includeSynthetic = false } = {}) {
   return parse(
-    await fetch(`${API_BASE}/v1/instructor/courses/${courseId}/milestones${buildSyntheticQS(includeSynthetic)}`, {
+    await guardedFetch(`${API_BASE}/v1/instructor/courses/${courseId}/milestones${buildSyntheticQS(includeSynthetic)}`, {
       method: 'GET',
       headers: getAuthHeaders(),
       credentials: 'include',
@@ -505,7 +506,7 @@ export async function getAtRiskStudents(courseId, { includeSynthetic = false, pa
   if (passRateThreshold != null) params.set('passRateThreshold', String(passRateThreshold));
   const qs = params.toString();
   return parse(
-    await fetch(`${API_BASE}/v1/instructor/courses/${courseId}/at-risk${qs ? `?${qs}` : ''}`, {
+    await guardedFetch(`${API_BASE}/v1/instructor/courses/${courseId}/at-risk${qs ? `?${qs}` : ''}`, {
       method: 'GET',
       headers: getAuthHeaders(),
       credentials: 'include',
@@ -515,7 +516,7 @@ export async function getAtRiskStudents(courseId, { includeSynthetic = false, pa
 
 export async function getTopicStudentHeatmap(courseId, { includeSynthetic = false } = {}) {
   return parse(
-    await fetch(`${API_BASE}/v1/instructor/courses/${courseId}/heatmap${buildSyntheticQS(includeSynthetic)}`, {
+    await guardedFetch(`${API_BASE}/v1/instructor/courses/${courseId}/heatmap${buildSyntheticQS(includeSynthetic)}`, {
       method: 'GET',
       headers: getAuthHeaders(),
       credentials: 'include',
@@ -532,7 +533,7 @@ export async function getRiskDistribution(courseId, { includeSynthetic = false, 
   if (topicId == null && upToTopic != null) params.set('upToTopic', String(upToTopic));
   const qs = params.toString();
   return parse(
-    await fetch(`${API_BASE}/v1/instructor/courses/${courseId}/risk-distribution${qs ? `?${qs}` : ''}`, {
+    await guardedFetch(`${API_BASE}/v1/instructor/courses/${courseId}/risk-distribution${qs ? `?${qs}` : ''}`, {
       method: 'GET',
       headers: getAuthHeaders(),
       credentials: 'include',
@@ -542,7 +543,7 @@ export async function getRiskDistribution(courseId, { includeSynthetic = false, 
 
 export async function getInstructorOverview({ includeSynthetic = false } = {}) {
   return parse(
-    await fetch(`${API_BASE}/v1/instructor/overview${buildSyntheticQS(includeSynthetic)}`, {
+    await guardedFetch(`${API_BASE}/v1/instructor/overview${buildSyntheticQS(includeSynthetic)}`, {
       method: 'GET',
       headers: getAuthHeaders(),
       credentials: 'include',
@@ -553,7 +554,7 @@ export async function getInstructorOverview({ includeSynthetic = false } = {}) {
 /** Dashboard hero — 2–3 sentence agent-generated briefing + the raw overview. */
 export async function getBriefing({ includeSynthetic = false } = {}) {
   return parse(
-    await fetch(`${API_BASE}/v1/instructor/briefing${buildSyntheticQS(includeSynthetic)}`, {
+    await guardedFetch(`${API_BASE}/v1/instructor/briefing${buildSyntheticQS(includeSynthetic)}`, {
       method: 'GET',
       headers: getAuthHeaders(),
       credentials: 'include',
@@ -564,7 +565,7 @@ export async function getBriefing({ includeSynthetic = false } = {}) {
 /** Course page — one-sentence "hot signal" about the course's most pressing issue. */
 export async function getHotSignal(courseId, { includeSynthetic = false } = {}) {
   return parse(
-    await fetch(`${API_BASE}/v1/instructor/courses/${courseId}/hot-signal${buildSyntheticQS(includeSynthetic)}`, {
+    await guardedFetch(`${API_BASE}/v1/instructor/courses/${courseId}/hot-signal${buildSyntheticQS(includeSynthetic)}`, {
       method: 'GET',
       headers: getAuthHeaders(),
       credentials: 'include',
@@ -575,7 +576,7 @@ export async function getHotSignal(courseId, { includeSynthetic = false } = {}) 
 /** Insights page — 3–5 narrative cards, each keyed to an existing chart. */
 export async function getInsightCards(courseId, { includeSynthetic = false } = {}) {
   return parse(
-    await fetch(`${API_BASE}/v1/instructor/courses/${courseId}/insight-cards${buildSyntheticQS(includeSynthetic)}`, {
+    await guardedFetch(`${API_BASE}/v1/instructor/courses/${courseId}/insight-cards${buildSyntheticQS(includeSynthetic)}`, {
       method: 'GET',
       headers: getAuthHeaders(),
       credentials: 'include',

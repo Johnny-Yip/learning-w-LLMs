@@ -30,10 +30,10 @@ A robust Express.js backend API for the Study Assist learning platform, featurin
 - `PORT`: Server port (default: 5001)
 - `MONGODB_URI`: MongoDB connection string
 - `CORS_ORIGINS`: Comma-separated list of allowed CORS origins
-- `LLM_PROVIDER`: LLM provider (groq, openai)
-- `LLM_MODEL`: Model name to use
+- `GROQ_MODEL`: Groq model used for planning, teaching, and assessment (default: `openai/gpt-oss-120b`)
+- `GROQ_MODEL_CHEAP`: Groq model used for intent and other lightweight tasks (default: `openai/gpt-oss-120b`). The `openai/` model prefix does not change the provider; requests still use Groq and `GROQ_API_KEY`.
 - `GROQ_API_KEY`: Groq API key
-- `OPENAI_API_KEY`: OpenAI API key
+- `OPENAI_API_KEY`: Optional OpenAI API key for book embeddings; not used by AI Chat
 
 ## API Endpoints
 
@@ -86,8 +86,8 @@ MONGODB_URI=mongodb://localhost:27017/studyassist
 CORS_ORIGINS=http://localhost:3000,https://yourdomain.com
 
 # LLM Provider Configuration
-LLM_PROVIDER=groq
-LLM_MODEL=llama3.1
+GROQ_MODEL=openai/gpt-oss-120b
+GROQ_MODEL_CHEAP=openai/gpt-oss-120b
 
 # API Keys (keep these secure!)
 GROQ_API_KEY=your_groq_api_key_here

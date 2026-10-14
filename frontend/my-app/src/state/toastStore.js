@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { subscribePrivateScope } from '../lib/privateScope';
 
 /**
  * PR-10 minimal toast store. One message at a time; a later showToast simply
@@ -15,5 +16,11 @@ const useToastStore = create((set) => ({
     hideTimer = setTimeout(() => set({ show: false }), ms);
   },
 }));
+
+subscribePrivateScope(() => {
+  clearTimeout(hideTimer);
+  hideTimer = null;
+  useToastStore.setState({ message: '', show: false });
+});
 
 export default useToastStore;

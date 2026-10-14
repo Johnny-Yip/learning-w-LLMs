@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import useAuthStore from '../state/authStore';
 import * as profileApi from '../lib/profileApi';
 import * as authApi from '../lib/authApi';
+import { capturePrivateScope, assertPrivateScope, isPrivateScopeCurrent, subscribePrivateScope } from '../lib/privateScope';
 import { getRandomAvatar } from '../utils/avatars';
 import '../styles/Onboarding.css';
 import PersonaFieldsGroup, {
@@ -10,28 +11,43 @@ import PersonaFieldsGroup, {
   personaFieldsToPayload,
 } from '../components/onboarding/PersonaFieldsGroup';
 
+const emptyForm = () => ({
+  // Step 1: Major, Topic, Self-Rating
+  major: 'Computer Science',
+  recentTopics: [], // Limited to 1 topic
+  selfRating: 'Intermediate',
+
+  // Step 2: Goal & Schedule
+  primaryGoal: 'Master Basics',
+  daysPerWeek: 3,
+  minutesPerSession: 40,
+
+  // Phase D1 persona fields — shared with course-join modal.
+  persona: { ...DEFAULT_PERSONA_FIELDS },
+});
+
 function Onboarding() {
   const navigate = useNavigate();
   const { user, updateProfile, signup, isAuthenticated } = useAuthStore();
   const [currentStep, setCurrentStep] = useState(1);
-  const [formData, setFormData] = useState({
-    // Step 1: Major, Topic, Self-Rating
-    major: 'Computer Science',
-    recentTopics: [], // Limited to 1 topic
-    selfRating: 'Intermediate',
-
-    // Step 2: Goal & Schedule
-    primaryGoal: 'Master Basics',
-    daysPerWeek: 3,
-    minutesPerSession: 40,
-
-    // Phase D1 persona fields — shared with course-join modal.
-    persona: { ...DEFAULT_PERSONA_FIELDS },
-  });
+  const [formData, setFormData] = useState(emptyForm);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false); // Track if we're in the middle of submission
   const [topicInput, setTopicInput] = useState('');
+
+  const signupUsername = useRef(null);
+  useEffect(() => subscribePrivateScope(() => {
+    // Keep this form only when its own signup accepts the new account.
+    if (signupUsername.current && useAuthStore.getState().user?.username === signupUsername.current) return;
+    signupUsername.current = null;
+    setFormData(emptyForm());
+    setCurrentStep(1);
+    setTopicInput('');
+    setError('');
+    setIsLoading(false);
+    setIsSubmitting(false);
+  }), []);
 
   // If user is authenticated, they've already completed onboarding (users only exist after onboarding)
   // Redirect them to chat instead of showing onboarding page
@@ -67,6 +83,7 @@ function Onboarding() {
 
 
   const handleSubmit = async () => {
+    let scope = capturePrivateScope();
     setIsSubmitting(true); // Mark that we're submitting
     setIsLoading(true);
     setError('');
@@ -106,6 +123,7 @@ function Onboarding() {
           // This is a backup check in case someone else registered with this username
           // between the signup page check and onboarding completion
           const usernameCheck = await authApi.checkUsername(signupData.username);
+          assertPrivateScope(scope);
           if (usernameCheck.exists) {
             setError('This username was registered while you were completing onboarding. Please sign in instead.');
             setIsLoading(false);
@@ -117,7 +135,8 @@ function Onboarding() {
             return;
           }
           
-          await signup({
+          signupUsername.current = signupData.username;
+          const signedUp = await signup({
             name: signupData.name,
             password: signupData.password,
             username: signupData.username,
@@ -126,9 +145,14 @@ function Onboarding() {
             instructorSignupSecret:
               signupData.role === 'instructor' ? signupData.instructorSignupSecret : undefined,
           });
+          const acceptedScope = capturePrivateScope();
+          assertPrivateScope({ ...acceptedScope, ownerId: String(signedUp.user._id || signedUp.user.id) });
+          scope = acceptedScope;
+          signupUsername.current = null;
           // Clear pending signup data immediately after signup succeeds
           sessionStorage.removeItem('pendingSignup');
         } catch (signupError) {
+          signupUsername.current = null;
           // Handle duplicate username errors specifically
           if (signupError.code === 'USERNAME_EXISTS' || signupError.message.toLowerCase().includes('username already taken')) {
             setError('This username is already taken. Please choose a different username or enable auto-generate in signup.');
@@ -147,6 +171,7 @@ function Onboarding() {
       
       // Update profile with all onboarding data via auth store (which calls API)
       // Backend expects flat structure, not wrapped in profile object
+      assertPrivateScope(scope);
       await updateProfile({
         avatarUrl: randomAvatar, // Assign random avatar during onboarding
         major: formData.major || 'Other',
@@ -163,6 +188,7 @@ function Onboarding() {
         onboardingCompleted: true, // Mark onboarding as completed
       });
       
+      assertPrivateScope(scope);
       // Clear any pending signup data first
       sessionStorage.removeItem('pendingSignup');
       
@@ -181,6 +207,7 @@ function Onboarding() {
         window.location.href = dest;
       }
     } catch (err) {
+      if (!isPrivateScopeCurrent(scope)) return;
       console.error('Onboarding submission error:', err);
       setError(err.message || 'Failed to save profile');
       setIsLoading(false);
